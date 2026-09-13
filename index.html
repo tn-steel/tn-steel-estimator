@@ -176,6 +176,9 @@ dialog.full::backdrop{background:rgba(15,23,42,.7)}
   table{font-size:10px} thead th{background:#e5e7eb!important;color:#000!important}
   td input{border:0;padding:0;width:auto} tr{break-inside:avoid}
   [hidden]{display:block!important}
+  body.minimal-print #boq tbody tr:not(.sum):not(.sell) { display: none !important; }
+  body.minimal-print #boq thead { display: none !important; }
+  body.minimal-print .split { display: none !important; }
 }
 @media (max-width:900px){ .opts{grid-template-columns:1fr} .total .grand b{font-size:34px} }
 </style>
@@ -185,7 +188,8 @@ dialog.full::backdrop{background:rgba(15,23,42,.7)}
 <header class="top">
   <h1>Glass Roof Estimator <span>· TN Steel Construction (Pvt) Ltd</span></h1>
   <div class="ref" id="ref">—</div>
-  <button class="b solid" onclick="window.print()">🖨 Print</button>
+  <button class="b solid" onclick="printMinimal()" style="background:#0284c7;border-color:#0284c7">📄 Quotation PDF</button>
+  <button class="b solid" onclick="window.print()">🖨 Print Full</button>
 </header>
 
 <div class="wrap">
@@ -868,6 +872,12 @@ el('opts').addEventListener('click',e=>{
 const tabs=[...document.querySelectorAll('nav.tabs [role="tab"]')];
 tabs.forEach(b=>b.addEventListener('click',()=>tabs.forEach(x=>{
  const on=x===b; x.setAttribute('aria-selected',on); el(x.getAttribute('aria-controls')).hidden=!on;})));
+
+function printMinimal() {
+  document.body.classList.add('minimal-print');
+  window.print();
+  document.body.classList.remove('minimal-print');
+}
 
 run();
 </script>
