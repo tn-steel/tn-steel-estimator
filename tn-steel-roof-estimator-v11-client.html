@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glass Roof Estimator — TN Steel</title>
+<style>
+.sig{font-style:normal;font-weight:400;opacity:.72;font-size:.86em}
+label .sig,th .sig{display:block;font-size:.8em;opacity:.68;line-height:1.35}
+</style>
+<style>
+:root{
+  --bg:#f6f8fa; --card:#fff; --ink:#111827; --ink2:#374151; --muted:#6b7280;
+  --line:#e3e7ec; --line2:#eef1f4; --brand:#1e3a8a; --accent:#0284c7;
+  --ok:#15803d; --warn:#b45309; --bad:#b91c1c; --frame:#e11d48;
+  --okbg:#f0fdf4; --warnbg:#fffbeb; --badbg:#fef2f2;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:13.5px;line-height:1.55;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;font-weight:650;letter-spacing:-0.015em}
+h1{font-size:14px} h2{font-size:16px} h3{font-size:13.5px}
+p{margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.mut{color:var(--muted)}
+button{font:inherit;cursor:pointer;border-radius:7px;transition:background .15s,border-color .15s,color .15s}
+.b{padding:7px 13px;border:1px solid var(--line);background:#fff;color:var(--ink2);font-size:13px;font-weight:550}
+.b:hover{border-color:#c4ccd6}
+.b.solid{background:var(--brand);border-color:var(--brand);color:#fff}
+.b.solid:hover{background:#152a63}
+.b.ghost{border-color:transparent;background:transparent}
+.b.ghost:hover{background:#eef1f5}
+
+header.top{position:sticky;top:0;z-index:30;height:54px;display:flex;align-items:center;gap:14px;
+  padding:0 22px;background:#fff;border-bottom:1px solid var(--line)}
+header.top h1 span{color:var(--muted);font-weight:400}
+header.top .ref{margin-left:auto;color:var(--muted);font-size:12.5px}
+
+.wrap{max-width:1500px;margin:0 auto;padding:20px 22px 80px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+
+.inputs{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11.5px;color:var(--muted);font-weight:550}
+input,select{font:inherit;padding:7px 10px;border:1px solid #d3d9e0;border-radius:7px;background:#fff;color:var(--ink)}
+input:hover,select:hover{border-color:#b6bec8}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(2,132,199,.14)}
+.f.big input{font-size:28px;font-weight:650;width:108px;text-align:center;padding:6px 10px;letter-spacing:-0.02em}
+.inputs .x{font-size:19px;color:var(--muted);padding-bottom:10px}
+.inputs .sp{flex:1}
+details.rates{margin-top:16px;border-top:1px solid var(--line2);padding-top:14px}
+details.rates>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--brand);
+  list-style:none;display:inline-flex;align-items:center;gap:6px;user-select:none}
+details.rates>summary::-webkit-details-marker{display:none}
+details.rates>summary::after{content:'\25be';font-size:9px;transition:transform .15s}
+details.rates[open]>summary::after{transform:rotate(180deg)}
+.ratenote{font-size:12px;color:var(--muted);margin-top:14px;max-width:92ch;line-height:1.7}
+.ratenote b{color:var(--warn)}
+
+.total{display:flex;flex-wrap:wrap;gap:38px;align-items:flex-end}
+.total .grand span{display:block;font-size:12px;color:var(--muted)}
+.total .grand b{display:block;font-size:44px;font-weight:650;letter-spacing:-0.035em;line-height:1.03;margin-top:2px}
+.total .grand em{display:block;font-style:normal;font-size:13px;color:var(--muted);margin-top:6px}
+.split{display:flex;gap:32px;flex-wrap:wrap;padding-bottom:6px}
+.split div span{display:block;font-size:11.5px;color:var(--muted)}
+.split div b{display:block;font-size:17px;font-weight:600;margin-top:2px}
+.split div b.sell{color:var(--brand)}
+
+.flags{margin-top:16px;display:flex;flex-direction:column;gap:7px}
+.flag{display:flex;gap:9px;align-items:baseline;font-size:12.5px;line-height:1.5;color:var(--ink2)}
+.flag i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--warn);transform:translateY(-2px)}
+.flag.bad i{background:var(--bad)} .flag.ok i{background:var(--ok)}
+.flag b{color:var(--ink);font-weight:650}
+
+nav.tabs{display:flex;gap:22px;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav.tabs button{border:0;background:transparent;padding:0 0 11px;font-size:13.5px;font-weight:550;
+  color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:0}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 11px;text-align:right;border-bottom:1px solid var(--line2)}
+thead th{background:var(--brand);color:#fff;font-weight:600;font-size:11.5px;border-bottom:0;text-align:center;white-space:nowrap}
+th.l,td.l{text-align:left}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#fafbfc}
+td.name{text-align:left;font-weight:600}
+td.name em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:1px}
+td.qty{background:#f8fafc;font-weight:650}
+td.rate{background:#f0fdf4;color:var(--ok);font-weight:600}
+td.tot{font-weight:650}
+td input{width:96px;padding:4px 8px;text-align:right;font-weight:600;font-size:12.5px}
+tr.sum td{background:#f1f5f9;font-weight:700;border-top:2px solid var(--line)}
+tr.sell td{background:#eef2ff;font-weight:700;color:var(--brand);font-size:14px}
+td.d-ok{color:var(--ok)} td.d-bad{color:var(--bad);font-weight:700;background:var(--badbg)}
+td.d-non{color:#c3c9d1}
+
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:18px}
+.opt{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px}
+.opt.chosen{border-color:var(--brand);box-shadow:0 0 0 3px rgba(30,58,138,.10)}
+.opt>header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.opt>header h3{flex:1;min-width:150px}
+.pill{font-size:11.5px;font-weight:650;padding:2px 9px;border-radius:99px;border:1px solid;
+  background:#eef2ff;border-color:#c7d2fe;color:var(--brand)}
+.cvbox{position:relative;background:#fff;border:1px solid var(--line2);border-radius:10px;padding:8px}
+canvas{display:block;width:100%;height:auto}
+.zoom{position:absolute;top:10px;right:10px;font-size:11.5px;padding:5px 10px;background:#fff;
+  border:1px solid var(--line);border-radius:6px;font-weight:600;color:var(--ink2)}
+.dlegend{display:flex;flex-wrap:wrap;gap:18px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--line2);font-size:11.5px;color:var(--muted)}
+.dlegend i{font-style:normal;display:inline-flex;align-items:center;gap:6px}
+.dlegend s{text-decoration:none;width:22px;height:4px;border-radius:2px;display:inline-block}
+.dlegend b{color:var(--ink2);font-weight:700}
+.dlegend s.wd{width:10px;height:10px;background:#0f172a;transform:rotate(45deg);border-radius:1px;
+  box-shadow:0 0 0 2px #fff}
+.dlegend s.wd.bad{background:#fff;box-shadow:0 0 0 2.5px #d97706}
+.dlegend s.td{width:7px;height:7px;border-radius:50%;background:rgba(30,41,59,.55)}
+.load div.wld{border-color:#cbd5e1;background:#f8fafc} .load div.wld b{color:#0f172a}
+.cutnote{font-size:11.5px;color:var(--muted);margin:-4px 0 9px;line-height:1.6;max-width:70ch}
+.ovbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fffbeb;border:1px solid #fde68a;
+  border-radius:9px;padding:10px 14px;margin-bottom:12px;font-size:12.5px;color:#92400e}
+.ovbar span{flex:1;min-width:200px}
+td input.ov{background:#fffbeb;border-color:#fcd34d;font-weight:650}
+.load{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.load div{flex:1;min-width:148px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#fbfcfd}
+.load span{display:block;font-size:11.5px;color:var(--muted)}
+.load b{display:block;font-size:19px;font-weight:650;margin-top:2px;letter-spacing:-0.02em}
+.load em{display:block;font-style:normal;font-size:11.5px;color:var(--muted);margin-top:1px}
+.load div.f16{border-color:#fbcfe8;background:#fff5f7} .load div.f16 b{color:var(--frame)}
+.load div.f14{border-color:#ddd6fe;background:#faf8ff} .load div.f14 b{color:#6d28d9}
+
+.pload{margin-top:10px}
+.pload div{background:#f8fafc;border-color:#dbe3ec}
+.pload div.q{background:#eef2ff;border-color:#c7d2fe}
+.pload div.q b{color:var(--brand)}
+.delta{font-size:11.5px;font-weight:650;padding:2px 9px;border-radius:99px;border:1px solid}
+.delta.cheap{background:#ecfdf5;border-color:#a7f3d0;color:var(--ok)}
+.delta.dear{background:#fff1f2;border-color:#fecdd3;color:var(--bad)}
+.delta.same{background:#f1f5f9;border-color:#dbe3ec;color:var(--muted)}
+.axiscmp{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fff;border:1px solid var(--line);
+  border-left:4px solid var(--brand);border-radius:10px;padding:12px 15px;margin-bottom:16px;font-size:13px;line-height:1.6}
+.axiscmp .sp{flex:1;min-width:200px}
+
+.cuts{margin-top:16px}
+.cuts>h4{margin:0 0 9px;font-size:12.5px;font-weight:650;color:var(--ink2)}
+.cutrow{display:flex;align-items:center;gap:11px;padding:6px 0;border-bottom:1px solid var(--line2)}
+.cutrow:last-child{border-bottom:0}
+.chip{flex:none;width:34px;text-align:center;font-size:11px;font-weight:700;color:#fff;border-radius:5px;padding:3px 0}
+.barline{flex:1;display:flex;height:26px;border-radius:6px;overflow:hidden;border:1px solid var(--line);min-width:150px}
+.pc{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:650;color:#fff;
+  border-right:1px solid rgba(255,255,255,.6);min-width:0;overflow:hidden;white-space:nowrap;padding:0 2px}
+.pc:last-child{border-right:0}
+.rm{display:flex;align-items:center;justify-content:center;font-size:10.5px;color:var(--muted);
+  background:repeating-linear-gradient(135deg,#f1f3f6 0 5px,#fff 5px 10px);white-space:nowrap;overflow:hidden}
+.cutrow .end{flex:none;width:130px;text-align:right;font-size:11.5px}
+.grpnote{font-size:11.5px;color:var(--muted);margin-left:45px}
+.tag{font-size:11.5px}
+.tag.ok{color:var(--ok)} .tag.warn{color:var(--warn)} .tag.bad{color:var(--bad)}
+
+dialog.full{border:0;padding:0;width:96vw;max-width:96vw;height:94dvh;max-height:94dvh;border-radius:12px;background:#fff}
+dialog.full::backdrop{background:rgba(15,23,42,.7)}
+.fh{display:flex;align-items:center;gap:14px;padding:0 18px;height:52px;border-bottom:1px solid var(--line)}
+.fh h3{flex:1}
+.fb{padding:14px;height:calc(94dvh - 52px);display:flex;align-items:center;justify-content:center}
+.fb canvas{max-height:100%;width:auto;max-width:100%}
+
+.note{font-size:12.5px;color:var(--muted);margin-bottom:14px;max-width:88ch;line-height:1.7}
+.note b{color:var(--ink)}
+
+@media print{
+  header.top,nav.tabs,.inputs,.zoom,.no-print{display:none!important}
+  body{background:#fff} .wrap{max-width:none;padding:0}
+  .card{border:1px solid #ccc;break-inside:avoid}
+  table{font-size:10px} thead th{background:#e5e7eb!important;color:#000!important}
+  td input{border:0;padding:0;width:auto} tr{break-inside:avoid}
+  [hidden]{display:block!important}
+}
+@media (max-width:900px){ .opts{grid-template-columns:1fr} .total .grand b{font-size:34px} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>Glass Roof Estimator <span>· TN Steel Construction (Pvt) Ltd</span></h1>
+  <div class="ref" id="ref">—</div>
+  <button class="b solid" onclick="window.print()">🖨 Print</button>
+</header>
+
+<div class="wrap">
+
+  <div class="card no-print">
+    <div class="inputs">
+      <div class="f big"><label>පළල · Width (ft)</label><input type="number" id="W" value="5" min="1" step="0.5"></div>
+      <div class="x">×</div>
+      <div class="f big"><label>දිග · Length (ft)</label><input type="number" id="L" value="5" min="1" step="0.5"></div>
+      <div class="f"><label>Gutters <i class="sig">(පීලි)</i></label><select id="gutters"><option value="1">Include</option><option value="0">No gutters</option></select></div>
+      <div class="f"><label>Wall-connected sides <i class="sig">(බිත්තියට යාවෙන පැති)</i></label><select id="wallSides">
+        <option>0</option><option>1</option><option>2</option><option selected>3</option><option>4</option></select></div>
+      <div class="f"><label>Main support bar (ft) <i class="sig">(ප්‍රධාන ආධාරක බාරය)</i></label><input type="number" id="mainFt" value="0" min="0" step="0.5" style="width:118px"></div>
+      <div class="f"><label>Main bar size <i class="sig">(ප්‍රධාන බාරයේ ප්‍රමාණය)</i></label><select id="mainType">
+        <option value="6x3">6 × 3 (2mm) · 13,450/bar</option><option value="5x2.5">5 × 2½ (2mm) · 11,200/bar</option></select></div>
+      <div class="f"><label>Charge steel as <i class="sig">(වානේ අය කරන ආකාරය)</i></label><select id="steelBasis">
+        <option value="bars">whole 18 ft bars bought</option><option value="feet">feet of steel used</option></select></div>
+      <div class="f"><label>Round the quote up to <i class="sig">(මිල ගණන වටයන්න)</i></label><select id="roundTo">
+        <option value="1000">nearest 1,000</option><option value="5000">nearest 5,000</option><option value="500">nearest 500</option><option value="0">no rounding</option></select></div>
+      <div class="f"><label>Box bar section <i class="sig">(බොක්ස් බාර් ප්‍රමාණය)</i></label><select id="boxSec">
+        <option value="4x2">4 × 2</option><option value="3x1.5">3 × 1 &frac12;</option></select></div>
+    </div>
+    <details class="rates"><summary>Rates &amp; margin</summary>
+      <div class="inputs" style="margin-top:14px">
+        <div class="f"><label>Steel (LKR / ton) <i class="sig">(වානේ · ටොන් එකකට)</i></label><input type="number" id="ton" value="327000" step="1000"></div>
+        <div class="f"><label>Glass (LKR / sq.ft) <i class="sig">(වීදුරු · වර්ග අඩියකට)</i></label><input type="number" id="glassRate" value="380" step="10"></div>
+        <div class="f"><label>Silicone (LKR / tube) <i class="sig">(සිලිකෝන් · ටියුබ් එකකට)</i></label><input type="number" id="siliconeRate" value="1200" step="50"></div>
+        <div class="f"><label>Transport (LKR) <i class="sig">(ප්‍රවාහනය)</i></label><input type="number" id="transport" value="20000" step="1000"></div>
+        <div class="f"><label>Crew cost (LKR / day) <i class="sig">(කම්කරු කණ්ඩායමේ දෛනික වියදම)</i></label><input type="number" id="dayCost" value="12000" step="500"></div>
+        <div class="f"><label>Finished sq.ft / crew-day <i class="sig">(දිනකට නිම කරන වර්ග අඩි)</i></label><input type="number" id="sqftDay" value="15" step="1"></div>
+        <div class="f"><label>Margin (%) <i class="sig">(ලාභ ප්‍රතිශතය)</i></label><input type="number" id="margin" value="20" step="1"></div>
+        <div class="f"><label>Minimum job (LKR) <i class="sig">(අවම කාර්ය මිල)</i></label><input type="number" id="minJob" value="0" step="5000" placeholder="off"></div>
+      </div>
+      <p class="ratenote" id="rateNote"></p>
+    </details>
+  </div>
+
+  <div class="card">
+    <div class="total">
+      <div class="grand"><span>Quote the customer <i class="sig">(පාරිභෝගික මිල ගණන)</i></span><b id="grand">—</b><em id="basis"></em></div>
+      <div class="split">
+        <div><span>Cost total <i class="sig">(මුළු වියදම)</i></span><b id="sCost">—</b></div>
+        <div><span>Per sq.ft <i class="sig">(වර්ග අඩියකට)</i></span><b id="sRate">—</b></div>
+        <div><span>Selling rate <i class="sig">(විකුණුම් අනුපාතය)</i></span><b class="sell" id="sSell">—</b></div>
+        <div><span>Without gutters <i class="sig">(පීලි නොමැතිව)</i></span><b id="sNoG">—</b></div>
+      </div>
+    </div>
+    <div class="flags" id="flags"></div>
+  </div>
+
+  <nav class="tabs no-print" role="tablist" aria-label="Sections">
+    <button role="tab" id="t-boq" aria-controls="p-boq" aria-selected="true">Quotation &amp; BOQ <i class="sig">(මිල ගණන හා ද්‍රව්‍ය ලැයිස්තුව)</i></button>
+    <button role="tab" id="t-lay" aria-controls="p-lay" aria-selected="false">Layout &amp; cutting <i class="sig">(සැලසුම හා කැපීම)</i></button>
+    <button role="tab" id="t-chk" aria-controls="p-chk" aria-selected="false">Sheet check <i class="sig">(පත්‍රය සමඟ සැසඳීම)</i></button>
+  </nav>
+
+  <section id="p-boq" role="tabpanel" aria-labelledby="t-boq">
+    <div class="ovbar no-print" id="ovBar" hidden><span id="ovText"></span>
+      <button class="b ghost" id="resetRates">Reset to computed rates</button></div>
+    <div class="tw"><table id="boq"></table></div>
+    <p class="note" style="margin-top:14px" id="boqNote"></p>
+  </section>
+
+  <section id="p-lay" role="tabpanel" aria-labelledby="t-lay" hidden>
+    <div class="axiscmp" id="axiscmp"></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section id="p-chk" role="tabpanel" aria-labelledby="t-chk" hidden>
+    <p class="note">Every square roof the costing sheet covers, its printed total against what this tool
+    computes for the same size. <b>Differences are expected</b> — the sheet's quantities were typed by
+    hand and several do not follow its own pattern. This table is here so any change to a rule can be
+    checked against reality rather than guessed at.</p>
+    <div class="tw"><table id="chk"></table></div>
+  </section>
+
+</div>
+
+<dialog class="full" id="fullDlg">
+  <div class="fh"><h3 id="fullTitle">Diagram</h3><button class="b ghost" onclick="fullDlg.close()">Close</button></div>
+  <div class="fb"><canvas id="fullCv"></canvas></div>
+</dialog>
+
+<script>
+
+const SHEET={"25":{"boxbar":[27,252],"paint":[25,83],"cutting":[2,60],"grinding":[1,250],"welding":[1,500],"marine":[0.5,4000],"langle":[4,350],"silicone":[2,1200],"dtape":[2,290],"mtape":[1,400],"glass":[25,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[5,350],"downpipe":[13,300],"flashing":[25,200],"labour":[25,1000],"transport":[1,20000]},"36":{"boxbar":[30,252],"paint":[30,83],"cutting":[2,60],"grinding":[1,250],"welding":[1,500],"marine":[0.5,4000],"langle":[4,350],"silicone":[2,1200],"dtape":[3,290],"mtape":[1,400],"glass":[30,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[6,350],"downpipe":[13,300],"flashing":[18,200],"labour":[36,1000],"transport":[1,20000]},"49":{"boxbar":[54,252],"paint":[35,83],"cutting":[2,60],"grinding":[1,250],"welding":[1,500],"marine":[0.5,4000],"langle":[4,350],"silicone":[2,1200],"dtape":[3,290],"mtape":[1,400],"glass":[49,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[7,350],"downpipe":[13,300],"flashing":[21,200],"labour":[49,1000],"transport":[1,20000]},"64":{"boxbar":[54,252],"paint":[48,83],"cutting":[2,60],"grinding":[1,250],"welding":[1,600],"marine":[0.5,4000],"langle":[4,350],"silicone":[4,1200],"dtape":[4,290],"mtape":[1,400],"glass":[64,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[8,350],"downpipe":[13,300],"flashing":[24,200],"labour":[64,1050],"transport":[1,20000]},"81":{"boxbar":[54,252],"paint":[54,83],"cutting":[2,60],"grinding":[1,250],"welding":[1,600],"marine":[0.5,4000],"langle":[5,350],"silicone":[3,1200],"dtape":[5,290],"mtape":[1,400],"glass":[81,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[9,350],"downpipe":[13,300],"flashing":[27,200],"labour":[81,1050],"transport":[1,20000]},"100":{"boxbar":[108,252],"paint":[70,83],"cutting":[3,60],"grinding":[2,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[6,350],"silicone":[6,1200],"dtape":[6,290],"mtape":[2,400],"glass":[100,380],"cleaner":[1,600],"cataloy":[0.25,2000],"call":[1,3000],"gutter":[10,350],"downpipe":[13,300],"flashing":[30,200],"labour":[100,950],"transport":[1,20000]},"121":{"boxbar":[126,252],"paint":[88,83],"cutting":[3,60],"grinding":[2,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[6,350],"silicone":[9,1200],"dtape":[8,290],"mtape":[2,400],"glass":[121,380],"cleaner":[1,600],"cataloy":[0.25,2800],"call":[1,3000],"gutter":[11,350],"downpipe":[13,300],"flashing":[33,200],"labour":[121,950],"transport":[1,20000]},"144":{"boxbar":[126,252],"paint":[96,83],"cutting":[3,60],"grinding":[3,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[7,350],"silicone":[9,1200],"dtape":[8,290],"mtape":[2,400],"glass":[144,380],"cleaner":[1,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[12,350],"downpipe":[13,300],"flashing":[36,200],"labour":[144,900],"transport":[1,20000]},"169":{"boxbar":[126,252],"paint":[104,83],"cutting":[3,60],"grinding":[3,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[7,350],"silicone":[9,1200],"dtape":[9,290],"mtape":[2,400],"glass":[169,380],"cleaner":[1,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[13,350],"downpipe":[13,300],"flashing":[39,200],"labour":[169,800],"transport":[1,20000]},"196":{"boxbar":[144,252],"paint":[126,83],"cutting":[3,60],"grinding":[3,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[8,350],"silicone":[11,1200],"dtape":[12,290],"mtape":[2,400],"glass":[196,380],"cleaner":[1,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[14,350],"downpipe":[13,300],"flashing":[42,200],"labour":[196,800],"transport":[1,20000]},"225":{"boxbar":[144,338],"paint":[135,125],"cutting":[3,60],"grinding":[3,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[8,350],"silicone":[12,1200],"dtape":[12,290],"mtape":[2,400],"glass":[225,380],"cleaner":[1,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[16,350],"downpipe":[13,300],"flashing":[45,200],"labour":[225,600],"transport":[1,20000]},"256":{"boxbar":[180,338],"paint":[144,125],"cutting":[3,60],"grinding":[3,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[8,350],"silicone":[12,1200],"dtape":[12,290],"mtape":[2,400],"glass":[256,380],"cleaner":[1,1000],"cataloy":[1,2000],"call":[1,3000],"gutter":[17,350],"downpipe":[13,300],"flashing":[48,200],"labour":[256,600],"transport":[1,20000]},"289":{"boxbar":[198,338],"paint":[187,125],"cutting":[4,60],"grinding":[4,250],"welding":[1,1200],"marine":[0.5,4000],"langle":[10,350],"silicone":[18,1200],"dtape":[16,290],"mtape":[4,400],"glass":[289,380],"cleaner":[2,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[18,350],"downpipe":[13,300],"flashing":[53,200],"labour":[289,600],"transport":[1,20000]},"324":{"boxbar":[216,338],"paint":[198,125],"cutting":[5,60],"grinding":[4,250],"welding":[2,1200],"marine":[1,4000],"langle":[12,350],"silicone":[18,1200],"dtape":[17,290],"mtape":[4,400],"glass":[324,380],"cleaner":[2,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[19,350],"downpipe":[13,300],"flashing":[54,200],"labour":[324,600],"transport":[1,20000]},"361":{"boxbar":[227,338],"paint":[209,125],"cutting":[5,60],"grinding":[4,250],"welding":[2,1200],"marine":[1,4000],"langle":[14,350],"silicone":[20,1200],"dtape":[18,290],"mtape":[6,400],"glass":[361,380],"cleaner":[2,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[20,350],"downpipe":[13,300],"flashing":[60,200],"labour":[361,600],"transport":[1,20000]},"400":{"boxbar":[260,338],"paint":[240,125],"cutting":[6,60],"grinding":[4,250],"welding":[2,1200],"marine":[1,4000],"langle":[16,350],"silicone":[22,1200],"dtape":[20,290],"mtape":[5,400],"glass":[400,380],"cleaner":[2,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[21,350],"downpipe":[13,300],"flashing":[21,200],"labour":[400,600],"transport":[1,20000]},"441":{"boxbar":[270,338],"paint":[252,125],"cutting":[7,60],"grinding":[5,250],"welding":[3,1200],"marine":[1,4000],"langle":[16,350],"silicone":[23,1200],"dtape":[21,290],"mtape":[6,400],"glass":[441,380],"cleaner":[2,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[22,350],"downpipe":[13,300],"flashing":[63,200],"labour":[441,600],"transport":[1,20000]},"484":{"boxbar":[284,338],"paint":[264,125],"cutting":[8,60],"grinding":[7,250],"welding":[3,1200],"marine":[1,4000],"langle":[16,350],"silicone":[25,1200],"dtape":[22,290],"mtape":[8,400],"glass":[484,380],"cleaner":[4,600],"cataloy":[2,2000],"call":[1,3000],"gutter":[23,350],"downpipe":[13,300],"flashing":[66,200],"labour":[484,600],"transport":[1,20000]},"529":{"boxbar":[322,338],"paint":[299,125],"cutting":[8,60],"grinding":[7,250],"welding":[3,1200],"marine":[1,4000],"langle":[16,350],"silicone":[25,1200],"dtape":[25,290],"mtape":[8,400],"glass":[529,380],"cleaner":[4,600],"cataloy":[2,2000],"call":[1,3000],"gutter":[24,350],"downpipe":[13,300],"flashing":[70,200],"labour":[529,600],"transport":[1,20000]},"576":{"boxbar":[330,338],"paint":[312,125],"cutting":[10,60],"grinding":[7,250],"welding":[3,1200],"marine":[1,4000],"langle":[16,350],"silicone":[28,1200],"dtape":[26,290],"mtape":[8,400],"glass":[576,380],"cleaner":[4,600],"cataloy":[1,2000],"call":[1,3000],"gutter":[26,350],"downpipe":[13,300],"flashing":[75,200],"labour":[576,600],"transport":[1,20000]}};
+
+const COLORS=["#2ecc71","#3498db","#e67e22","#9b59b6","#1abc9c","#f1c40f","#e84393","#00cec9",
+              "#d35400","#fdcb6e","#6c5ce7","#00b894","#ff7675","#74b9ff","#a29bfe"];
+const FRAME='#e11d48';
+const STOCK=18, PANE_W=3, PANE_L=8;
+
+const SI={
+ 'Box bar':'බොක්ස් බාර්','Main support bar':'ප්‍රධාන ආධාරක බාරය','Paint':'තීන්ත',
+ 'Cutting':'කැපීම','Grinding':'ග්‍රයින්ඩින්','Welding rods':'වෙල්ඩින් රොඩ්',
+ 'Marine paint':'මැරීන් තීන්ත','L Angle':'එල් ඇන්ගල්','Silicone':'සිලිකෝන්',
+ 'Double tape':'දෙපැති ටේප්','Masking tape':'මාස්කින් ටේප්','Glass':'වීදුරු',
+ 'Glass cleaner':'වීදුරු පිරිසිදු කාරකය','Cataloy':'කැටලෝයි','Gutter':'පීල්ල',
+ 'Down pipes':'බැස්ම බට','Wall Flashing':'බිත්ති ෆ්ලෑෂිං','Labour charge':'කම්කරු ගාස්තු',
+ 'Transport':'ප්‍රවාහනය',
+ 'Item':'අයිතමය','Qty':'ප්‍රමාණය','Unit':'ඒකකය','Roof':'වහලය','Sq.ft':'වර්ග අඩි',
+ 'This tool':'මෙම මෙවලම','Diff':'වෙනස',
+ 'Ft':'අඩි','Pcs':'ගණන','Sqft':'වර්ග අඩි','Ltr':'ලීටර්','Bars':'බාර්','job':'කාර්යය'
+};
+const si=e=>SI[e]?e+' <i class="sig">('+SI[e]+')</i>':e;
+const MIN_STRIP=1;   /* below this, a leftover strip is absorbed rather than ordered as glass */
+
+const el=id=>document.getElementById(id);
+const V=id=>el(id).value;
+const num=id=>parseFloat(V(id))||0;
+const d1=n=>Math.round(n*10)/10;
+const d2=n=>Math.round(n*100)/100;
+const f0=n=>Math.round(n).toLocaleString('en-US');
+const f2=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const qf=n=>n===Math.round(n)?String(n):(n===0.25?'1/4':n===0.5?'1/2':String(d2(n)));
+const fl=n=>{const r=Math.round(n*100)/100; return String(Math.abs(r)<1e-9?0:r);};
+const lkr=n=>'LKR '+f2(n);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const S={chosen:'A'};
+
+const MAIN_BAR={'6x3':13450,'5x2.5':11200};
+const HEAVY=225;                                   /* 15x15: the sheet changed section here */
+const BAR_KG={'4x2_1.4':18.00,'4x2_1.6':20.50,'3x1.5_1.4':13.50,'3x1.5_1.6':15.50};
+const barPrice=(sec,ton)=>ton/1000*BAR_KG[sec];
+const barPriceOf=(sec,th,ton)=>barPrice(sec+'_'+th,ton);
+function steelCost(o,opt,byBars){
+ const sec=opt.boxSec||'4x2';
+ const p16=barPriceOf(sec,'1.6',opt.ton), p14=barPriceOf(sec,'1.4',opt.ton);
+ return byBars ? o.fBars.length*p16 + o.innerBars.length*p14
+               : o.frameFt*(p16/STOCK) + o.innerFt*(p14/STOCK);
+}
+const paintRate=a=>a>=HEAVY?125:83;
+const weldRate=a=>a<=49?500:a<=81?600:1200;
+const weldQty =a=>a<=289?1:a<=400?2:3;
+const marineQty=a=>a<=289?0.5:1;
+const cataloyQty=a=>a<=121?0.25:a<=441?1:2;
+const cleanerQty=a=>a<=256?1:a<=441?2:4;
+const labourRate=(a,dayCost,sqftDay)=>{
+ const eff=Math.min(2.2,Math.max(1,Math.pow(a/49,0.22)));   /* 49 sqft = the baseline day */
+ return dayCost/(sqftDay*eff);
+};
+
+function splitCols(divide,area){ return splitRun(divide,PANE_W); }
+function splitRows(cross){ return splitRun(cross,PANE_L); }
+
+function splitRun(total,pane){
+ const n=Math.floor(total/pane+1e-9), rem=total-n*pane;
+ if(n<=0) return [total];                          /* narrower than a single pane */
+ const o=Array.from({length:n},()=>pane);
+ if(rem<1e-9) return o;                            /* divides exactly */
+ if(rem<MIN_STRIP-1e-9) o[o.length-1]=pane+rem;    /* absorb the sliver into the last bay */
+ else o.push(rem);                                 /* a strip worth ordering on its own */
+ return o;
+}
+function nest(pieces){
+ const bars=[];
+ [...pieces].sort((a,b)=>b.len-a.len).forEach(p=>{
+  let bar=bars.find(b=>b.remaining>=p.len-1e-9);
+  if(!bar){bar={remaining:STOCK,cuts:[]};bars.push(bar);}
+  bar.remaining=bar.remaining-p.len; bar.cuts.push(p);
+ });
+ return bars;
+}
+
+const gridLines=arr=>{const o=[];let s=0;arr.forEach(v=>{s=d2(s+v);o.push(s);});return o;};
+
+function spliceRun(len,grid){
+ const pieces=[]; let cur=0, unhidden=0;
+ while(d2(len-cur)>STOCK+1e-9){
+  const reach=cur+STOCK;
+  let n=null;
+  for(const g of grid) if(g>cur+1e-9&&g<=reach+1e-9) n=g;
+  let hidden=true;
+  if(n===null){ n=reach; hidden=false; unhidden++; }   /* nothing to hide behind — flagged */
+  pieces.push({len:n-cur,from:cur,to:n,joint:n,hidden});
+  cur=n;
+ }
+ pieces.push({len:len-cur,from:cur,to:len,joint:null,hidden:true});
+ return {pieces,unhidden};
+}
+
+function framePieces(cross,divide,cols,rows){
+ const gc=gridLines(cols), gr=gridLines(rows);
+ const out=[], joints=[]; let unhidden=0;
+ [['Top',divide,gc,'top'],['Bottom',divide,gc,'bottom'],
+  ['Left',cross,gr,'left'],['Right',cross,gr,'right']].forEach(([side,len,grid,edge])=>{
+  const r=spliceRun(len,grid); unhidden+=r.unhidden;
+  r.pieces.forEach((p,i)=>{
+   out.push({len:p.len,tag:r.pieces.length>1?side+' '+fl(p.from)+'–'+fl(p.to)+'′':side});
+   if(p.joint!==null) joints.push({edge,at:p.joint,hidden:p.hidden});
+  });
+ });
+ return {pieces:out,joints,unhidden};
+}
+
+function solve(cross,divide){
+ const area=Math.round(cross*divide);
+ const cols=splitCols(divide,area), rows=splitRows(cross);
+
+ const rafters=[]; for(let c=1;c<cols.length;c++) rafters.push({id:'v_'+c,col:c,len:cross});
+ const purlins=[]; let pn=1;
+ for(let r=1;r<rows.length;r++)
+  cols.forEach((w,c)=>purlins.push({id:'h_'+r+'_'+c,row:r,col:c,len:w,name:'B'+(pn++)}));
+
+ const innerBars=[]; const map={}; let n=0;
+ const newBar=()=>{const b={code:'B'+(++n),color:COLORS[(n-1)%COLORS.length],
+   stock:STOCK,remaining:STOCK,cuts:[]};innerBars.push(b);return b;};
+ const gr=gridLines(rows), gc=gridLines(cols);
+ const raftJoints=[]; let raftUnhidden=0;
+
+ const inner14=[];
+ rafters.forEach(rf=>{
+  const r=spliceRun(rf.len,gr); raftUnhidden+=r.unhidden;
+  r.pieces.forEach(p=>{
+   inner14.push({owner:rf.id,len:p.len,
+     tag:'Rafter '+rf.col+(r.pieces.length>1?' '+fl(p.from)+'–'+fl(p.to)+'′':'')});
+   if(p.joint!==null) raftJoints.push({col:rf.col,at:p.joint,hidden:p.hidden});
+  });
+ });
+ purlins.forEach(p=>inner14.push({owner:p.id,len:p.len,tag:p.name}));
+
+ [...inner14].sort((a,b)=>b.len-a.len).forEach(pc=>{
+  let bar=innerBars.find(b=>b.remaining>=pc.len-1e-9);
+  if(!bar) bar=newBar();
+  bar.remaining=bar.remaining-pc.len;
+  bar.cuts.push({len:pc.len,tag:pc.tag});
+  const m=map[pc.owner];
+  if(!m) map[pc.owner]={code:bar.code,color:bar.color};
+  else if(m.code.split(',').indexOf(bar.code)<0) m.code+=','+bar.code;
+ });
+
+ const fp=framePieces(cross,divide,cols,rows);
+ const fBars=nest(fp.pieces);
+ fBars.forEach((b,i)=>{b.code='F'+(i+1);b.color=FRAME;});
+
+ const buttWelds=fp.joints.length+raftJoints.length;
+ const nR=rafters.length, nP=rows.length-1;
+ const teeWelds=4                       /* frame corners */
+   +nR*2                                /* each rafter, both ends into the frame */
+   +nP*2                                /* each purlin line, both ends into the frame */
+   +nR*nP;                              /* interior rafter x purlin crossings */
+ const unhiddenWelds=fp.unhidden+raftUnhidden;
+
+ const frameFt=d2(2*cross+2*divide);
+ const innerFt=d2(rafters.reduce((s,r)=>s+r.len,0)+purlins.reduce((s,p)=>s+p.len,0));
+ const steelFt=d2(frameFt+innerFt);                    /* what actually gets painted */
+ const barsBought=fBars.length+innerBars.length;
+ const boughtFt=barsBought*STOCK;                      /* what actually gets bought */
+ const waste=d2(fBars.reduce((s,b)=>s+b.remaining,0)+innerBars.reduce((s,b)=>s+b.remaining,0));
+ const cuts=fBars.concat(innerBars).reduce((k,b)=>k+b.cuts.length-(b.remaining<1e-9?1:0),0);
+
+ const panes=[];
+ rows.forEach((rl,r)=>cols.forEach((cw,c)=>panes.push({r,c,w:cw,l:rl,
+  std:Math.abs(cw-PANE_W)<0.01&&Math.abs(rl-PANE_L)<0.01})));
+ const edgeFt=d2(panes.reduce((s,p)=>s+2*(p.w+p.l),0));
+
+ return {cross,divide,area,cols,rows,rafters,purlins,innerBars,fBars,map,
+   frameFt,innerFt,steelFt,barsBought,boughtFt,waste,cuts,panes,edgeFt,
+   frameJoints:fp.joints,raftJoints,buttWelds,teeWelds,unhiddenWelds,
+   colSum:d2(cols.reduce((s,v)=>s+v,0)),
+   oddPanes:panes.filter(p=>!p.std).length};
+}
+
+function boqFor(o,opt,raw){
+ const a=o.area, W=Math.min(o.cross,o.divide), L=Math.max(o.cross,o.divide);
+ const gut=opt.gutters, sides=opt.wallSides;
+ const runs=[L,W,W,L].slice(0,sides);
+ const flashFt=Math.round(runs.reduce((s,v)=>s+v,0));
+ const gutterPcs=gut?Math.round(L)+(L>=15?1:0):0;
+
+ const byBars=opt.steelBasis!=='feet';
+ const steelQty=byBars?o.boughtFt:o.steelFt;
+ const steelSub=byBars?(o.barsBought+' bars @ '+STOCK+' ft — what is actually bought')
+                     :(o.steelFt+' ft used, '+o.barsBought+' bars actually bought');
+ const rows=[
+  ['boxbar','Box bar',            steelQty,'Ft',    steelCost(o,opt,byBars)/steelQty,steelSub],
+  ['mainbar','Main support bar',  Math.ceil(opt.mainFt/STOCK),'Bars',MAIN_BAR[opt.mainType],
+    opt.mainFt>0?opt.mainType+' over '+opt.mainFt+' ft':'Not included — enter the length if this roof needs one'],
+  ['paint','Paint',               d2(o.steelFt+opt.mainFt),'Ft', paintRate(a),
+    'over '+o.steelFt+' ft of frame and inner steel'+(opt.mainFt>0?' + '+opt.mainFt+' ft of main bar':'')],
+  ['cutting','Cutting',           Math.ceil(o.barsBought/2),'Pcs',60,'1 per 2 bars'],
+  ['grinding','Grinding',         Math.ceil(o.barsBought/3),'Pcs',250, '1 per 3 bars'],
+  ['welding','Welding rods',      weldQty(a),'Pcs', weldRate(a),  ''],
+  ['marine','Marine paint',       marineQty(a),'Ltr',4000,        ''],
+  ['langle','L Angle',            4+Math.floor(o.rafters.length/2),'Pcs',350,'4 corners + 1 per 2 rafters'],
+  ['silicone','Silicone',         Math.ceil(o.edgeFt/19),'Pcs',opt.siliconeRate,
+    d2(o.edgeFt)+' ft of pane edge · 1 tube per 19 ft'],
+  ['dtape','Double tape',         Math.ceil(o.steelFt/12),'Pcs',290,''],
+  ['mtape','Masking tape',        Math.ceil(o.steelFt/40),'Pcs',400,''],
+  ['glass','Glass',               a,'Sqft',         opt.glassRate,
+    o.panes.length+' panes, billed as finished pane area'],
+  ['cleaner','Glass cleaner',     cleanerQty(a),'Pcs',600,        ''],
+  ['cataloy','Cataloy',           cataloyQty(a),'Ltr',2000,       ''],
+  ['call','Call',                 1,'Pcs',          3000,         'as per the costing sheet'],
+  ['gutter','Gutter',             gutterPcs,'Pcs',  350,          gut?'along the '+L+' ft side':'not included'],
+  ['downpipe','Down pipes',       gut?13:0,'Pcs',   300,          gut?'as per the costing sheet — confirm against the actual drop':'not included'],
+  ['flashing','Wall Flashing',    flashFt,'Ft',     200,
+    sides+' wall-abutting side(s) — set to the real run if the roof is a lean-to'],
+  ['labour','Labour charge',      a,'Sqft',         labourRate(a,opt.dayCost,opt.sqftDay),
+    'LKR '+f0(opt.dayCost)+' a crew-day over '+opt.sqftDay+' sq.ft/day'],
+  ['transport','Transport',       1,'job',          opt.transport,'flat per job']
+ ];
+ return rows.map(([key,name,qty,unit,rate,sub])=>
+   ({key,name,qty:d2(qty),unit,rate:(!raw&&key in RATE_OVERRIDE)?RATE_OVERRIDE[key]:rate,sub}));
+}
+
+function priceOf(o,opt){
+ const items=boqFor(o,opt), a=o.area;
+ let cost=0,gutterCost=0;
+ items.forEach(it=>{const t=it.qty*it.rate; cost+=t;
+  if(it.key==='gutter'||it.key==='downpipe') gutterCost+=t;});
+ const withMargin=cost*(1+opt.margin);
+ const total2=Math.max(withMargin,opt.minJob);
+ const rate=total2/a;
+ const rt=parseFloat(V('roundTo'));
+ const up=t=>rt>0?Math.ceil(t/rt)*rt:t;
+ const sellTotal=up(total2);
+ const noGTotal=up(Math.max((cost-gutterCost)*(1+opt.margin),opt.minJob));
+ return {items,cost,gutterCost,withMargin,total2,rate,
+   sell:sellTotal/a, noGSell:noGTotal/a, sellTotal, noGTotal,
+   rounding:sellTotal-total2, minApplied:total2>withMargin+0.5};
+}
+
+let ITEMS=[];
+const RATE_OVERRIDE={};
+function run(){
+ const W=num('W'), L=num('L');
+ if(!(W>0)||!(L>0)) return;
+ const opt={gutters:V('gutters')==='1',wallSides:parseInt(V('wallSides'))||0,steelBasis:V('steelBasis'),mainFt:num('mainFt'),mainType:V('mainType'),boxSec:V('boxSec'),
+  ton:num('ton'),glassRate:num('glassRate'),siliconeRate:num('siliconeRate'),
+  transport:num('transport'),dayCost:num('dayCost'),sqftDay:num('sqftDay'),
+  margin:num('margin')/100,minJob:num('minJob')};
+
+ const dimKey=W+'x'+L;
+ if(S.dimKey!==dimKey){ S.picked=false; S.dimKey=dimKey; }
+
+ S.A=solve(W,L); S.B=(W===L)?null:solve(L,W);
+ S.opt=opt;
+
+ S.pA=priceOf(S.A,opt);
+ S.pB=S.B?priceOf(S.B,opt):null;
+
+ if(!S.B){ S.chosen='A'; }
+ else if(!S.picked){ S.chosen=(S.pB.cost<S.pA.cost-0.5)?'B':'A'; }
+
+ S.o=(S.chosen==='B'&&S.B)?S.B:S.A;
+ S.p=(S.chosen==='B'&&S.pB)?S.pB:S.pA;
+ el('ref').textContent='TNGR-'+Math.round(W*10)+'x'+Math.round(L*10);
+
+ ITEMS=S.p.items;
+ renderBOQ(); renderOptions(); renderCheck(); renderFlags();
+}
+
+function renderBOQ(){
+ const o=S.o, a=o.area, sheet=SHEET[String(a)];
+ let total=0, gutterCost=0;
+ const body=ITEMS.map((it,i)=>{
+  const t=it.qty*it.rate; total+=t;
+  if(it.key==='gutter'||it.key==='downpipe') gutterCost+=t;
+  let cmp='<td class="d-non">–</td><td class="d-non">–</td>';
+  if(sheet&&sheet[it.key]){
+   const [sq,sr]=sheet[it.key], diff=it.qty*it.rate-sq*sr;
+   cmp='<td>'+qf(sq)+(sr!==it.rate?' <span class="tag warn">@'+f0(sr)+'</span>':'')+'</td>'
+     +'<td class="'+(Math.abs(diff)<0.5?'d-ok':'d-bad')+'">'+(Math.abs(diff)<0.5?'match':(diff>0?'+':'')+f0(diff))+'</td>';
+  }
+  return '<tr><td class="name l">'+si(esc(it.name))+(it.sub?'<em>'+esc(it.sub)+'</em>':'')+'</td>'
+   +'<td class="qty">'+qf(it.qty)+'</td><td class="l mut">'+si(it.unit)+'</td>'
+   +'<td><input type="number" step="0.01" class="'+(it.key in RATE_OVERRIDE?'ov':'')+'" value="'+it.rate+'" data-i="'+i+'" title="'+(it.key in RATE_OVERRIDE?'typed for this job — blank the box to go back to the computed rate':'computed')+'"></td>'
+   +'<td class="tot">'+f2(t)+'</td>'+cmp+'</tr>';
+ }).join('');
+
+ const P=S.p, cost=P.cost, withMargin=P.withMargin, total2=P.total2,
+       rate=P.rate, sell=P.sell, noGSell=P.noGSell, rt=parseFloat(V('roundTo'));
+ S.minApplied=P.minApplied;
+ const sheetTotal=sheet?Object.keys(sheet).reduce((s,k)=>s+sheet[k][0]*sheet[k][1],0):null;
+
+ el('boq').innerHTML=
+  '<thead><tr><th class="l" style="width:250px">'+si('Item')+'</th><th>'+si('Qty')+'</th>'
+  +'<th class="l">'+si('Unit')+'</th>'
+  +'<th>Per unit (LKR)<i class="sig">(ඒකකයකට)</i></th><th>Total (LKR)<i class="sig">(එකතුව)</i></th>'
+  +'<th>Sheet qty<i class="sig">(පත්‍රයේ ප්‍රමාණය)</i></th>'
+  +'<th>Diff (LKR)<i class="sig">(වෙනස)</i></th></tr></thead><tbody>'+body
+  +'<tr class="sum"><td class="l">Cost total (no margin)</td><td colspan="3"></td><td>'+f2(total)+'</td>'
+  +(sheetTotal!==null?'<td colspan="2">sheet '+f0(sheetTotal)+' · '+(total>=sheetTotal?'+':'')+f0(total-sheetTotal)+'</td>':'<td colspan="2" class="d-non">–</td>')+'</tr>'
+  +'<tr class="sum"><td class="l">Margin '+Math.round(S.opt.margin*100)+'%</td><td colspan="3"></td><td>'+f2(withMargin-cost)+'</td><td colspan="2"></td></tr>'
+  +(S.minApplied?'<tr class="sum"><td class="l">Minimum job value applied</td><td colspan="3"></td><td>'+f2(total2-withMargin)+'</td><td colspan="2"></td></tr>':'')
+  +'<tr class="sum"><td class="l">Per sq.ft ('+a+' sq.ft)</td><td colspan="3"></td><td>'+f2(rate)+'</td><td colspan="2"></td></tr>'
+  +'<tr class="sell"><td class="l">Selling rate</td><td colspan="3"></td><td>'+f2(sell)+' / sq.ft</td><td colspan="2"></td></tr>'
+  +(P.rounding>0.5?'<tr class="sum"><td class="l">Rounded up to the nearest '+f0(rt)+'</td><td colspan="3"></td><td>'+f2(P.rounding)+'</td><td colspan="2"></td></tr>':'')
+  +'<tr class="sell"><td class="l">Quote the customer</td><td colspan="3"></td><td>'+f2(sell*a)+'</td><td colspan="2"></td></tr>'
+  +'</tbody>';
+
+ el('grand').textContent=lkr(sell*a);
+ el('basis').textContent=a+' sq.ft · '+lkr(sell)+' per sq.ft'
+  +(S.B?' · from Option '+S.chosen+' ('+fl(S.o.cross)+' ft rafters)':'');
+ el('sCost').textContent=lkr(cost);
+ el('sRate').textContent=lkr(rate);
+ el('sSell').textContent=lkr(sell);
+ el('sNoG').textContent=S.opt.gutters?lkr(noGSell)+' / sq.ft':'—';
+ el('rateNote').innerHTML='Crew cost, sq.ft per crew-day and margin are <b>settings, not measurements</b> — '
+  +'they currently work out to LKR '+f0(labourRate(a,S.opt.dayCost,S.opt.sqftDay))+' / sq.ft of labour at this size, '
+  +'with margin at '+Math.round(S.opt.margin*100)+'%. Check them against a recent job before quoting from this.';
+ const ovKeys=Object.keys(RATE_OVERRIDE);
+ el('ovBar').hidden=!ovKeys.length;
+ if(ovKeys.length) el('ovText').innerHTML='<b>'+ovKeys.length+' rate'+(ovKeys.length>1?'s':'')
+  +' typed for this job</b> — '+ovKeys.map(k=>esc((ITEMS.find(i=>i.key===k)||{name:k}).name)).join(', ')
+  +'. These stick until you clear them and are excluded from the Sheet check.';
+ el('boqNote').innerHTML='Quantities are computed from this roof, not copied from the sheet. '
+  +'<b>Every rate is editable</b> and the total re-prices as you type. The last two columns appear only when '
+  +'the roof matches one of the 20 square sizes the costing sheet covers.';
+ S.total=cost; S.sellTotal=sell*a; S.rate=rate; S.sell=sell; S.sheetTotal=sheetTotal;
+}
+
+function renderOptions(){
+ const list=[['A',S.A,S.pA]]; if(S.B) list.push(['B',S.B,S.pB]);
+ el('axiscmp').innerHTML=cmpHTML();
+ el('opts').innerHTML=list.map(([k,o,p])=>optHTML(k,o,p)).join('');
+ list.forEach(([k,o])=>draw('cv'+k,o));
+}
+
+function cmpHTML(){
+ if(!S.B) return '<div class="sp"><b>Square roof — one layout only.</b> '
+  +'Both axes are '+fl(S.A.cross)+' ft, so turning the glass 90° gives the identical grid '
+  +'and the identical price. Enter unequal sides to compare the two.</div>';
+ const d=S.pB.cost-S.pA.cost, cheaper=d<0?'B':'A', ad=Math.abs(d);
+ const pct=ad/Math.max(S.pA.cost,1)*100;
+ const sameQuote=Math.abs(S.pB.sellTotal-S.pA.sellTotal)<0.5;
+ if(ad<0.5) return '<div class="sp"><b>Both axes cost the same to build.</b> Option A ('+fl(S.A.cross)
+  +' ft rafters, '+S.A.panes.length+' panes) and Option B ('+fl(S.B.cross)+' ft rafters, '+S.B.panes.length
+  +' panes) come to '+lkr(S.pA.cost)+' either way. Pick on buildability, not price.</div>'
+  +'<span class="delta same">no difference</span>';
+ return '<div class="sp"><b>Option '+cheaper+' costs '+lkr(ad)+' less to build</b> ('+pct.toFixed(1)+'%). '
+  +'A: '+fl(S.A.cross)+' ft rafters, '+S.A.panes.length+' panes, '+S.A.barsBought+' bars, '+fl(S.A.waste)+' ft off-cut, cost '+lkr(S.pA.cost)+'. '
+  +'B: '+fl(S.B.cross)+' ft rafters, '+S.B.panes.length+' panes, '+S.B.barsBought+' bars, '+fl(S.B.waste)+' ft off-cut, cost '+lkr(S.pB.cost)+'. '
+  +'Turning the glass 90° changes the pane grid, the bar count and the off-cut, so it changes the money.'
+  +(sameQuote?' <b>Both still quote '+lkr(S.pA.sellTotal)+'</b> — rounding the rate up to the nearest '
+    +V('roundTo')+' absorbs the gap, so building the cheaper axis is '+lkr(ad)+' of extra margin rather than a lower price to the customer.':'')
+  +'</div><span class="delta cheap">Option '+cheaper+' cheaper</span>';
+}
+
+function optHTML(k,o,p){
+ const chosen=S.chosen===k;
+ const other=k==='A'?S.pB:S.pA;
+ let dchip='';
+ if(other){
+  const d=p.cost-other.cost;
+  dchip=Math.abs(d)<0.5?'<span class="delta same">same cost as '+(k==='A'?'B':'A')+'</span>'
+   :d<0?'<span class="delta cheap">'+lkr(-d)+' cheaper to build</span>'
+        :'<span class="delta dear">'+lkr(d)+' dearer to build</span>';
+ }
+ const grp=arr=>{
+  const g={};
+  arr.forEach(b=>{const key=b.cuts.map(c=>fl(c.len)).join('+')+'|'+fl(b.remaining);
+   (g[key]=g[key]||{bars:[],cuts:b.cuts,remaining:b.remaining,color:b.color}).bars.push(b);});
+  return Object.values(g);
+ };
+ const rowsFor=gs=>gs.map(g=>{
+  const pieces=g.cuts.map(c=>'<div class="pc" style="flex:'+c.len+' 0 0;background:'+g.color+'" title="'+fl(c.len)+' ft — '+esc(c.tag)+'">'+fl(c.len)+'′</div>').join('');
+  const rm=g.remaining>1e-6?'<div class="rm" style="flex:'+g.remaining+' 0 0">'+fl(g.remaining)+'′</div>':'';
+  const end=g.remaining<1e-6?'<span class="tag ok">fully used</span>'
+   :'<span class="tag warn">'+fl(g.remaining)+'′ off-cut</span>';
+  return '<div class="cutrow"><span class="chip" style="background:'+g.color+'">'
+   +(g.bars.length>1?'×'+g.bars.length:g.bars[0].code)+'</span>'
+   +'<div class="barline">'+pieces+rm+'</div><span class="end">'+end+'</span></div>'
+   +(g.bars.length>1?'<div class="grpnote">'+g.bars.map(b=>b.code).join(', ')+'</div>':'');
+ }).join('');
+
+ return '<div class="opt'+(chosen?' chosen':'')+'">'
+ +'<header><h3>Option '+k+' — rafters span <i class="sig">(පරාල දිග)</i> '+fl(o.cross)+' ft</h3>'+dchip
+ +(chosen?'<span class="pill">costing from this</span>':'<button class="b" data-pick="'+k+'">Cost from this</button>')+'</header>'
+ +'<div class="load pload">'
+ +'<div class="q"><span>Quote this layout <i class="sig">(මෙම සැලසුමට මිල)</i></span><b>'+lkr(p.sellTotal)+'</b><em>'+o.area+' sq.ft</em></div>'
+ +'<div><span>Selling rate <i class="sig">(විකුණුම් අනුපාතය)</i></span><b>'+f2(p.sell)+'</b><em>LKR / sq.ft</em></div>'
+ +'<div><span>Cost, no margin <i class="sig">(ලාභයකින් තොර වියදම)</i></span><b>'+f0(p.cost)+'</b><em>'+(S.opt.gutters?'no gutters '+f2(p.noGSell)+' / sq.ft':'gutters excluded')+'</em></div>'
+ +'</div>'
+ +'<div class="cvbox"><button class="zoom" data-full="'+k+'">Full screen</button>'
+ +'<canvas id="cv'+k+'" width="900" height="560"></canvas>'
+ +'<div class="dlegend"><i><s style="background:'+FRAME+'"></s><b>B 1.6</b> outer frame <i class="sig">(පිටත රාමුව)</i> · '+o.fBars.length+' bars</i>'
+ +'<i><s style="background:linear-gradient(90deg,'+COLORS.slice(0,5).join(',')+')"></s><b>B 1.4</b> inner · B1–B'+o.innerBars.length+', one colour per bar</i>'
+ +'<i><s class="wd"></s><b>butt weld</b> splice, hidden on a panel joint</i>'
+ +'<i><s class="td"></s><b>tee weld</b> member into member at 90°</i>'
+ +(o.unhiddenWelds?'<i><s class="wd bad"></s><b>'+o.unhiddenWelds+' exposed</b> — no panel joint in reach</i>':'')
+ +'</div></div>'
+ +'<div class="load">'
+ +'<div class="f16"><span>1.6mm outer frame <i class="sig">(1.6mm පිටත රාමුව)</i></span><b>'+o.fBars.length+' bars</b><em>'+fl(o.frameFt)+' ft run</em></div>'
+ +'<div class="f14"><span>1.4mm inner bars <i class="sig">(1.4mm අභ්‍යන්තර බාර්)</i></span><b>'+o.innerBars.length+' bars</b><em>'+fl(o.innerFt)+' ft run</em></div>'
+ +'<div><span>Glass panes <i class="sig">(වීදුරු තහඩු)</i></span><b>'+o.panes.length+'</b><em>'+(o.oddPanes?o.oddPanes+' off-standard':'all 3′×8′')+'</em></div>'
+ +'<div><span>Steel bought <i class="sig">(මිලදී ගත් වානේ)</i></span><b>'+fl(o.boughtFt)+' ft</b><em>'+fl(o.waste)+' ft off-cut</em></div>'
+ +'<div class="wld"><span>Welds <i class="sig">(වෙල්ඩින් සන්ධි)</i></span><b>'+(o.buttWelds+o.teeWelds)+'</b><em>'+o.buttWelds+' butt · '+o.teeWelds+' tee</em></div>'
+ +'</div>'
+ +'<div class="cuts"><h4>Outer frame — 1.6mm</h4>'
+ +'<p class="cutnote">Splices land only where a 90° member crosses, so the bead sits under the '
+ +'four glass corners. That is why a '+fl(o.cross)+' ft run is not cut at 18 ft.</p>'
+ +rowsFor(grp(o.fBars))
+ +'<h4 style="margin-top:14px">Inner bars — 1.4mm</h4>'+rowsFor(grp(o.innerBars))+'</div></div>';
+}
+
+function draw(id,o,cv){
+ cv=cv||el(id); if(!cv)return;
+ const x=cv.getContext('2d'); x.clearRect(0,0,cv.width,cv.height);
+ const pad=54, sc=Math.min((cv.width-pad*2)/o.divide,(cv.height-pad*2)/o.cross);
+ const w=o.divide*sc, h=o.cross*sc;
+ const X=Math.round((cv.width-w)/2), Y=Math.round((cv.height-h)/2);
+
+ let py=Y;
+ o.rows.forEach(rl=>{ let px=X;
+  o.cols.forEach(cw=>{
+   const std=Math.abs(cw-PANE_W)<0.01&&Math.abs(rl-PANE_L)<0.01;
+   x.fillStyle=std?'#f7fbff':'#fff7ea'; x.fillRect(px,py,cw*sc,rl*sc); px+=cw*sc;
+  }); py+=rl*sc;
+ });
+
+ let cy=Y;
+ o.rows.forEach((rl,r)=>{ if(r<o.rows.length-1){ cy+=rl*sc; let px=X;
+  o.cols.forEach((cw,c)=>{
+   const info=o.map['h_'+(r+1)+'_'+c]||{color:'#3498db',code:'B'};
+   x.lineWidth=4; x.strokeStyle=info.color;
+   x.beginPath(); x.moveTo(px,cy); x.lineTo(px+cw*sc,cy); x.stroke();
+   badge(x,px+cw*sc/2,cy,info.code,info.color); px+=cw*sc;
+  });
+ }});
+
+ let cx=X;
+ o.cols.forEach((cw,i)=>{ if(i<o.cols.length-1){ cx+=cw*sc;
+  const info=o.map['v_'+(i+1)];
+  if(info){ x.lineWidth=4.5; x.strokeStyle=info.color;
+   x.beginPath(); x.moveTo(cx,Y); x.lineTo(cx,Y+h); x.stroke();
+   badge(x,cx,Y+h/2,info.code,info.color); }
+ }});
+
+ x.lineWidth=7; x.strokeStyle=FRAME; x.strokeRect(X,Y,w,h);
+ badge(x,X+w/2,Y,'B 1.6',FRAME); badge(x,X+w/2,Y+h,'B 1.6',FRAME);
+ badge(x,X,Y+h/2,'B 1.6',FRAME); badge(x,X+w,Y+h/2,'B 1.6',FRAME);
+
+ x.fillStyle='rgba(30,41,59,.55)';
+ const dot=(px,py)=>{x.beginPath();x.arc(px,py,3.2,0,7);x.fill();};
+ [X,X+w].forEach(px=>[Y,Y+h].forEach(py=>dot(px,py)));       /* 4 corners */
+ let dx=X;
+ o.cols.forEach((cw,i)=>{ if(i<o.cols.length-1){ dx+=cw*sc;
+  dot(dx,Y); dot(dx,Y+h);                                    /* rafter ends into frame */
+  let dy=Y; o.rows.forEach((rl,r)=>{ if(r<o.rows.length-1){ dy+=rl*sc; dot(dx,dy); } });
+ }});
+ let dy2=Y;
+ o.rows.forEach((rl,r)=>{ if(r<o.rows.length-1){ dy2+=rl*sc;
+  dot(X,dy2); dot(X+w,dy2);                                  /* purlin ends into frame */
+ }});
+
+ const cum=arr=>{let s=0;return arr.map(v=>s=d2(s+v));};
+ const colAt=cum(o.cols);
+ o.frameJoints.forEach(j=>{
+  const p=j.at*sc;
+  if(j.edge==='top')    weld(x,X+p,Y,      j.hidden);
+  if(j.edge==='bottom') weld(x,X+p,Y+h,    j.hidden);
+  if(j.edge==='left')   weld(x,X,  Y+p,    j.hidden);
+  if(j.edge==='right')  weld(x,X+w,Y+p,    j.hidden);
+ });
+ o.raftJoints.forEach(j=>weld(x,X+colAt[j.col-1]*sc,Y+j.at*sc,j.hidden));
+
+ x.fillStyle='#1e3a8a'; x.font='600 13px ui-sans-serif,system-ui,sans-serif';
+ x.textAlign='center'; x.textBaseline='bottom';
+ x.fillText(fl(o.divide)+' ft',X+w/2,Y-16);
+ x.save(); x.translate(X-20,Y+h/2); x.rotate(-Math.PI/2); x.textBaseline='middle';
+ x.fillText(fl(o.cross)+' ft',0,0); x.restore();
+}
+function weld(x,cx,cy,hidden){
+ x.save(); x.translate(cx,cy); x.rotate(Math.PI/4);
+ const s=hidden?9:10.5;
+ x.beginPath(); x.rect(-s/2,-s/2,s,s);
+ if(hidden){ x.fillStyle='#0f172a'; x.fill(); x.lineWidth=2.4; x.strokeStyle='#fff'; x.stroke(); }
+ else      { x.fillStyle='#fff';    x.fill(); x.lineWidth=3;   x.strokeStyle='#d97706'; x.stroke(); }
+ x.restore();
+}
+function badge(x,cx,cy,text,color){
+ x.save(); x.font='700 9.5px ui-sans-serif,system-ui,sans-serif';
+ const w=Math.max(20,x.measureText(text).width+11), h=17, r=h/2, lx=cx-w/2, ly=cy-h/2;
+ x.beginPath(); x.moveTo(lx+r,ly); x.lineTo(lx+w-r,ly); x.arc(lx+w-r,ly+r,r,-Math.PI/2,Math.PI/2);
+ x.lineTo(lx+r,ly+h); x.arc(lx+r,ly+r,r,Math.PI/2,-Math.PI/2); x.closePath();
+ x.fillStyle='#fff'; x.fill(); x.lineWidth=2; x.strokeStyle=color; x.stroke();
+ x.fillStyle='#1e293b'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(text,cx,cy+0.5);
+ x.restore();
+}
+
+function renderCheck(){
+ const opt={gutters:true,wallSides:3,steelBasis:V('steelBasis'),mainFt:0,mainType:V('mainType'),boxSec:V('boxSec'),
+  ton:num('ton'),glassRate:num('glassRate'),siliconeRate:num('siliconeRate'),
+  transport:num('transport'),dayCost:num('dayCost'),sqftDay:num('sqftDay'),
+  margin:num('margin')/100,minJob:num('minJob')};
+ const rows=Object.keys(SHEET).map(Number).sort((a,b)=>a-b).map(area=>{
+  const s=Math.round(Math.sqrt(area));
+  const o=solve(s,s);
+  const items=boqFor(o,opt,true);          /* raw — ignore rates typed for this job */
+  const ours=items.reduce((t,i)=>t+i.qty*i.rate,0);
+  const sh=SHEET[String(area)];
+  const theirs=Object.keys(sh).reduce((t,k)=>t+sh[k][0]*sh[k][1],0);
+  const d=ours-theirs, pct=d/theirs*100;
+  const cls=Math.abs(pct)<5?'d-ok':Math.abs(pct)<15?'':'d-bad';
+  return '<tr><td class="l">'+s+' × '+s+'</td><td>'+area+'</td>'
+   +'<td>'+f0(theirs)+'</td><td>'+f0(ours)+'</td>'
+   +'<td class="'+cls+'">'+(d>0?'+':'')+f0(d)+'</td>'
+   +'<td class="'+cls+'">'+(pct>0?'+':'')+pct.toFixed(1)+'%</td>'
+   +'<td>'+f2(theirs/area)+'</td><td>'+f2(ours/area)+'</td></tr>';
+ }).join('');
+ el('chk').innerHTML='<thead><tr><th class="l">'+si('Roof')+'</th><th>'+si('Sq.ft')+'</th>'
+  +'<th>Sheet total<i class="sig">(පත්‍රයේ එකතුව)</i></th>'
+  +'<th>'+si('This tool')+'</th><th>'+si('Diff')+'</th><th>Diff %</th>'
+  +'<th>Sheet / sq.ft</th><th>Tool / sq.ft</th></tr></thead><tbody>'+rows+'</tbody>';
+}
+
+function renderFlags(){
+ const o=S.o, f=[], a=o.area;
+ if(S.B){
+  const d=S.pB.cost-S.pA.cost, cheaper=d<0?'B':'A', ad=Math.abs(d);
+  f.push(ad<0.5
+   ?['ok','<b>Both glass axes cost the same</b> — '+lkr(S.pA.cost)+' whichever way the panes run. '
+     +'Costing from Option '+S.chosen+'. Both layouts and cutting schedules are on the <b>Layout &amp; cutting</b> tab.']
+   :[S.chosen===cheaper?'ok':'warn','<b>Option '+cheaper+' is '+lkr(ad)+' cheaper to build.</b> '
+     +'A (rafters '+fl(S.A.cross)+' ft) costs '+lkr(S.pA.cost)+', B (rafters '+fl(S.B.cross)+' ft) costs '+lkr(S.pB.cost)+'. '
+     +'Costing from Option '+S.chosen+(S.chosen===cheaper?'':' — switch on the <b>Layout &amp; cutting</b> tab if the site allows it')
+     +'. Both layouts and cutting schedules are on that tab.']);
+ }
+ if(o.unhiddenWelds)
+  f.push(['bad','<b>'+o.unhiddenWelds+' weld'+(o.unhiddenWelds>1?'s':'')+' cannot be hidden</b> — '
+   +'no panel joint falls within 18 ft of the previous splice, so the bead lands in clear beam '
+   +'and will be visible. Change a dimension or order a longer bar.']);
+ else if(o.buttWelds)
+  f.push(['ok','<b>All '+o.buttWelds+' splice weld'+(o.buttWelds>1?'s are':' is')+' hidden</b> on a panel '
+   +'joint — none in mid-beam. Marked as dark diamonds on the layout diagram.']);
+ if(Math.abs(o.colSum-o.divide)>0.05)
+  f.push(['bad','<b>Grid does not fit the roof</b> — columns sum to '+fl(o.colSum)+' ft on a '+fl(o.divide)+' ft side.']);
+ if(S.sheetTotal!==null){
+  const d=S.total-S.sheetTotal, p=d/S.sheetTotal*100;
+  f.push([Math.abs(p)<5?'ok':'warn','<b>'+Math.round(Math.sqrt(a))+' × '+Math.round(Math.sqrt(a))
+   +' is on the costing sheet.</b> Sheet '+f0(S.sheetTotal)+', this tool '+f0(S.total)
+   +' — '+(d>0?'+':'')+f0(d)+' ('+(p>0?'+':'')+p.toFixed(1)+'%). Row-by-row difference is in the last column of the BOQ.']);
+ }
+ const util=o.boughtFt?o.steelFt/o.boughtFt*100:100;
+ if(o.waste>0) f.push([util>=88?'ok':'warn','<b>'+fl(o.waste)+' ft of off-cut</b> across '+o.barsBought
+  +' bars — '+util.toFixed(0)+'% of the steel bought ends up in the roof. Rafter off-cuts feed the '
+  +'purlins, so nothing is binned just because it came off a rafter bar.']);
+ if(o.oddPanes) f.push(['warn','<b>'+o.oddPanes+' off-standard pane'+(o.oddPanes>1?'s':'')+'</b> — the roof does not divide evenly into 3′ × 8′.']);
+ if(!S.opt.gutters) f.push(['ok','<b>No gutters.</b> Gutter and down pipe lines are zeroed, so the rate on the summary already excludes them.']);
+ el('flags').innerHTML=f.map(([k,t])=>'<div class="flag'+(k==='bad'?' bad':k==='ok'?' ok':'')+'"><i></i><div>'+t+'</div></div>').join('');
+}
+
+let t=null; const go=()=>{clearTimeout(t);t=setTimeout(run,140)};
+['W','L','gutters','wallSides','roundTo','steelBasis','mainFt','mainType',
+ 'ton','glassRate','siliconeRate','transport','dayCost','sqftDay','margin','minJob'].forEach(k=>{
+ el(k).addEventListener('input',go); el(k).addEventListener('change',go);});
+el('boq').addEventListener('change',e=>{
+ const i=e.target.dataset.i; if(i===undefined)return;
+ const k=ITEMS[+i].key, v=parseFloat(e.target.value);
+ if(e.target.value.trim()===''||!isFinite(v)||v<0) delete RATE_OVERRIDE[k];
+ else RATE_OVERRIDE[k]=v;
+ run();});
+el('resetRates').addEventListener('click',()=>{
+ Object.keys(RATE_OVERRIDE).forEach(k=>delete RATE_OVERRIDE[k]); run();});
+el('opts').addEventListener('click',e=>{
+ const pick=e.target.closest('[data-pick]'), full=e.target.closest('[data-full]');
+ if(pick){S.chosen=pick.dataset.pick;S.picked=true;run();}
+ if(full){
+  const k=full.dataset.full, o=k==='B'?S.B:S.A;
+  el('fullTitle').textContent='Option '+k+' — '+fl(o.cross)+' ft × '+fl(o.divide)+' ft';
+  const cv=el('fullCv');
+  cv.width=Math.min(1800,Math.round(window.innerWidth*0.9));
+  cv.height=Math.round(window.innerHeight*0.8);
+  el('fullDlg').showModal(); draw(null,o,cv);
+ }});
+const tabs=[...document.querySelectorAll('nav.tabs [role="tab"]')];
+tabs.forEach(b=>b.addEventListener('click',()=>tabs.forEach(x=>{
+ const on=x===b; x.setAttribute('aria-selected',on); el(x.getAttribute('aria-controls')).hidden=!on;})));
+
+run();
+</script>
+</body>
+</html>
