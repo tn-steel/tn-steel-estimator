@@ -249,6 +249,7 @@ dialog.full::backdrop{background:rgba(15,23,42,.7)}
       <div class="f"><label>Gutters <i class="sig">(පීලි)</i></label><select id="gutters"><option value="1">Include</option><option value="0">No gutters</option></select></div>
       <div class="f"><label>Wall-connected sides <i class="sig">(බිත්තියට යාවෙන පැති)</i></label><select id="wallSides">
         <option>0</option><option>1</option><option>2</option><option selected>3</option><option>4</option></select></div>
+      <div class="f"><label>Columns <i class="sig">(කණු)</i></label><input type="number" id="numCols" value="0" min="0" max="20" step="1" style="width:70px"></div>
       <div class="f"><label>Main support bar (ft) <i class="sig">(ප්‍රධාන ආධාරක බාරය)</i></label><input type="number" id="mainFt" value="0" min="0" step="0.5" style="width:118px"></div>
       <div class="f"><label>Main bar size <i class="sig">(ප්‍රධාන බාරයේ ප්‍රමාණය)</i></label><select id="mainType">
         <option value="6x3">6 × 3 (2mm) · 13,450/bar</option><option value="5x2.5">5 × 2½ (2mm) · 11,200/bar</option></select></div>
@@ -268,6 +269,7 @@ dialog.full::backdrop{background:rgba(15,23,42,.7)}
         <div class="f"><label>Crew cost (LKR / day) <i class="sig">(කම්කරු කණ්ඩායමේ දෛනික වියදම)</i></label><input type="number" id="dayCost" value="12000" step="500"></div>
         <div class="f"><label>Finished sq.ft / crew-day <i class="sig">(දිනකට නිම කරන වර්ග අඩි)</i></label><input type="number" id="sqftDay" value="15" step="1"></div>
         <div class="f"><label>Margin (%) <i class="sig">(ලාභ ප්‍රතිශතය)</i></label><input type="number" id="margin" value="20" step="1"></div>
+        <div class="f"><label>Column Rate (LKR) <i class="sig">(කණුවක මිල)</i></label><input type="number" id="colRate" value="15000" step="500"></div>
         <div class="f"><label>Minimum job (LKR) <i class="sig">(අවම කාර්ය මිල)</i></label><input type="number" id="minJob" value="0" step="5000" placeholder="off"></div>
       </div>
       <p class="ratenote" id="rateNote"></p>
@@ -627,6 +629,9 @@ function boqFor(o,opt,raw){
     'LKR '+f0(opt.dayCost)+' a crew-day over '+opt.sqftDay+' sq.ft/day'],
   ['transport','Transport',       1,'job',          opt.transport,'flat per job']
  ];
+ if (opt.numCols > 0) {
+   rows.splice(2, 0, ['columns', 'Structural Columns', opt.numCols, 'Pcs', opt.colRate, 'Standard columns added manually']);
+ }
  return rows.map(([key,name,qty,unit,rate,sub])=>
    ({key,name,qty:d2(qty),unit,rate:(!raw&&key in RATE_OVERRIDE)?RATE_OVERRIDE[key]:rate,sub}));
 }
@@ -665,6 +670,7 @@ function run(){
  const opt={gutters:V('gutters')==='1',wallSides:parseInt(V('wallSides'))||0,steelBasis:V('steelBasis'),mainFt:num('mainFt'),mainType:V('mainType'),boxSec:V('boxSec'),
   ton:num('ton'),glassRate:num('glassRate'),siliconeRate:num('siliconeRate'),
   transport:num('transport'),dayCost:num('dayCost'),sqftDay:num('sqftDay'),
+  numCols:num('numCols'),colRate:num('colRate'),
   margin:num('margin')/100,minJob:num('minJob')};
 
  const dimKey=W+'x'+L;
@@ -1045,6 +1051,9 @@ function printMinimal() {
   }
   if (S.opt.wallSides > 0) {
     list.push('Wall Flashing');
+  }
+  if (S.opt.numCols > 0) {
+    list.push(`Structural Columns (${S.opt.numCols})`);
   }
   
   el('invCheckList').innerHTML = list.map(item => `<li>✅ ${esc(item)}</li>`).join('');
