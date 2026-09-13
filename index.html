@@ -510,7 +510,16 @@ function priceOf(o,opt){
 }
 
 let ITEMS=[];
-const RATE_OVERRIDE={};
+let RATE_OVERRIDE={};
+try {
+  const saved = localStorage.getItem('tn-steel-rates');
+  if (saved) RATE_OVERRIDE = JSON.parse(saved);
+} catch (e) {}
+
+function saveRates() {
+  localStorage.setItem('tn-steel-rates', JSON.stringify(RATE_OVERRIDE));
+}
+
 function run(){
  const W=num('W'), L=num('L');
  if(!(W>0)||!(L>0)) return;
@@ -839,9 +848,12 @@ el('boq').addEventListener('change',e=>{
  const k=ITEMS[+i].key, v=parseFloat(e.target.value);
  if(e.target.value.trim()===''||!isFinite(v)||v<0) delete RATE_OVERRIDE[k];
  else RATE_OVERRIDE[k]=v;
+ saveRates();
  run();});
 el('resetRates').addEventListener('click',()=>{
- Object.keys(RATE_OVERRIDE).forEach(k=>delete RATE_OVERRIDE[k]); run();});
+ Object.keys(RATE_OVERRIDE).forEach(k=>delete RATE_OVERRIDE[k]);
+ saveRates();
+ run();});
 el('opts').addEventListener('click',e=>{
  const pick=e.target.closest('[data-pick]'), full=e.target.closest('[data-full]');
  if(pick){S.chosen=pick.dataset.pick;S.picked=true;run();}
