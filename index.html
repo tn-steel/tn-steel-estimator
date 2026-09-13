@@ -985,7 +985,7 @@ function renderFlags(){
 }
 
 let t=null; const go=()=>{clearTimeout(t);t=setTimeout(run,140)};
-['W','L','gutters','wallSides','roundTo','steelBasis','mainFt','mainType',
+['W','L','gutters','wallSides','roundTo','steelBasis','mainFt','mainType','boxSec','numCols','colRate',
  'ton','glassRate','siliconeRate','transport','dayCost','sqftDay','margin','minJob'].forEach(k=>{
  el(k).addEventListener('input',go); el(k).addEventListener('change',go);});
 el('boq').addEventListener('change',e=>{
