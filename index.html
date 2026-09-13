@@ -1041,6 +1041,9 @@ function printMinimal() {
   if (S.opt.gutters) {
     list.push('Gutters and Down pipes');
   }
+  if (S.opt.wallSides > 0) {
+    list.push('Wall Flashing');
+  }
   
   el('invCheckList').innerHTML = list.map(item => `<li>✅ ${esc(item)}</li>`).join('');
 
