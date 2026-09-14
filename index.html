@@ -602,8 +602,8 @@ function boqFor(o,opt,raw){
  const steelSub=byBars?(o.barsBought+' bars @ '+STOCK+' ft — what is actually bought')
                      :(o.steelFt+' ft used, '+o.barsBought+' bars actually bought');
  const rows=[
-  ['boxbar','Box bar',            steelQty,'Ft',    steelCost(o,opt,byBars)/steelQty,steelSub],
-  ['mainbar','Main support bar',  Math.ceil(opt.mainFt/STOCK),'Bars',MAIN_BAR[opt.mainType],
+  ['boxbar_'+opt.boxSec,'Box bar',            steelQty,'Ft',    steelCost(o,opt,byBars)/steelQty,steelSub],
+  ['mainbar_'+opt.mainType,'Main support bar',  Math.ceil(opt.mainFt/STOCK),'Bars',MAIN_BAR[opt.mainType],
     opt.mainFt>0?opt.mainType+' over '+opt.mainFt+' ft':'Not included — enter the length if this roof needs one'],
   ['paint','Paint',               steelQty,'Ft', paintRate(a),
     'same as Box Bar quantity'],
@@ -1032,7 +1032,7 @@ function printMinimal() {
   list.push('6mm clear tempered glass');
   
   const boxSec = V('boxSec'); // '4x2' or '3x1.5'
-  const boxGauges = ITEMS.find(i=>i.key==='boxbar') ? '1.4mm/1.6mm' : ''; 
+  const boxGauges = ITEMS.find(i=>i.key.startsWith('boxbar')) ? '1.4mm/1.6mm' : ''; 
   list.push(boxSec + (boxGauges ? '('+boxGauges+')' : '') + ' Box Bar Lanwa');
   
   if (S.opt.mainFt > 0) {
